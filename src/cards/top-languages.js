@@ -4,6 +4,7 @@ import { Card } from "../common/Card.js";
 import { getCardColors } from "../common/color.js";
 import { formatBytes } from "../common/fmt.js";
 import { I18n } from "../common/I18n.js";
+import { resolveTopLanguageColor } from "../common/language-color.js";
 import { chunkArray, clampValue, lowercaseTrim } from "../common/ops.js";
 import {
   createProgressNode,
@@ -18,6 +19,7 @@ const DEFAULT_LANG_COLOR = "#858585";
 const CARD_PADDING = 25;
 const COMPACT_LAYOUT_BASE_HEIGHT = 90;
 const MAXIMUM_LANGS_COUNT = 20;
+const LINES_IN_KILO_LINE = 1000;
 
 const NORMAL_LAYOUT_DEFAULT_LANGS_COUNT = 5;
 const COMPACT_LAYOUT_DEFAULT_LANGS_COUNT = 6;
@@ -191,6 +193,10 @@ const trimTopLanguages = (topLangs, langs_count, hide) => {
       // @ts-ignore
       return !langsToHide[lowercaseTrim(lang.name)];
     })
+    .map((lang) => ({
+      ...lang,
+      color: resolveTopLanguageColor(lang.name, lang.color),
+    }))
     .slice(0, langsCount);
 
   const totalLanguageSize = langs.reduce((acc, curr) => acc + curr.size, 0);
@@ -201,13 +207,19 @@ const trimTopLanguages = (topLangs, langs_count, hide) => {
 /**
  * Get display value corresponding to the format.
  *
- * @param {number} size Bytes size.
+ * @param {number} size Metric value.
  * @param {number} percentages Percentage value.
  * @param {string} format Format of the stats.
  * @returns {string} Display value.
  */
 const getDisplayValue = (size, percentages, format) => {
-  return format === "bytes" ? formatBytes(size) : `${percentages.toFixed(2)}%`;
+  if (format === "bytes") {
+    return formatBytes(size);
+  }
+  if (format === "kilo-lines") {
+    return `${(size / LINES_IN_KILO_LINE).toFixed(2)} k`;
+  }
+  return `${percentages.toFixed(2)}%`;
 };
 
 /**
@@ -285,7 +297,7 @@ const createCompactLangNode = ({
     <g class="stagger" style="animation-delay: ${staggerDelay}ms">
       <circle cx="5" cy="6" r="5" fill="${color}" />
       <text data-testid="lang-name" x="15" y="10" class='lang-name'>
-        ${lang.name} ${hideProgress ? "" : displayValue}
+        ${lang.name} ${hideProgress && statsFormat !== "kilo-lines" ? "" : displayValue}
       </text>
     </g>
   `;
@@ -327,9 +339,13 @@ const createLanguageTextNode = ({
     }).join("");
   });
 
-  const percent = ((longestLang.size / totalSize) * 100).toFixed(2);
+  const maxLangDisplay = getDisplayValue(
+    longestLang.size,
+    (longestLang.size / totalSize) * 100,
+    statsFormat || "percentages",
+  );
   const minGap = 150;
-  const maxGap = 20 + measureText(`${longestLang.name} ${percent}%`, 11);
+  const maxGap = 20 + measureText(`${longestLang.name} ${maxLangDisplay}`, 11);
   return flexLayout({
     items: layouts,
     gap: maxGap < minGap ? minGap : maxGap,
@@ -798,12 +814,15 @@ const renderTopLanguages = (topLangs, options = {}) => {
     border_color,
     disable_animations,
     stats_format = "percentages",
+    percentage,
   } = options;
 
   const i18n = new I18n({
     locale,
     translations: langCardLocales,
   });
+  const resolvedStatsFormat =
+    percentage === false ? "kilo-lines" : stats_format || "percentages";
 
   const { langs, totalLanguageSize } = trimTopLanguages(
     topLangs,
@@ -839,13 +858,17 @@ const renderTopLanguages = (topLangs, options = {}) => {
     });
   } else if (layout === "pie") {
     height = calculatePieLayoutHeight(langs.length);
-    finalLayout = renderPieLayout(langs, totalLanguageSize, stats_format);
+    finalLayout = renderPieLayout(
+      langs,
+      totalLanguageSize,
+      resolvedStatsFormat,
+    );
   } else if (layout === "donut-vertical") {
     height = calculateDonutVerticalLayoutHeight(langs.length);
     finalLayout = renderDonutVerticalLayout(
       langs,
       totalLanguageSize,
-      stats_format,
+      resolvedStatsFormat,
     );
   } else if (layout === "compact" || hide_progress == true) {
     height =
@@ -856,7 +879,7 @@ const renderTopLanguages = (topLangs, options = {}) => {
       width,
       totalLanguageSize,
       hide_progress,
-      stats_format,
+      resolvedStatsFormat,
     );
   } else if (layout === "donut") {
     height = calculateDonutLayoutHeight(langs.length);
@@ -865,14 +888,14 @@ const renderTopLanguages = (topLangs, options = {}) => {
       langs,
       width,
       totalLanguageSize,
-      stats_format,
+      resolvedStatsFormat,
     );
   } else {
     finalLayout = renderNormalLayout(
       langs,
       width,
       totalLanguageSize,
-      stats_format,
+      resolvedStatsFormat,
     );
   }
 

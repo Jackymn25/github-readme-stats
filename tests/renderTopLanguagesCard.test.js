@@ -41,6 +41,24 @@ const langs = {
   },
 };
 
+const overrideColorLangs = {
+  Java: {
+    color: "#b07219",
+    name: "Java",
+    size: 300,
+  },
+  TypeScript: {
+    color: "#3178c6",
+    name: "TypeScript",
+    size: 200,
+  },
+  C: {
+    color: "#555555",
+    name: "C",
+    size: 100,
+  },
+};
+
 /**
  * Retrieve number array from SVG path definition string.
  *
@@ -882,5 +900,130 @@ describe("Test renderTopLanguages", () => {
     expect(queryAllByTestId(document.body, "lang-name")[2]).toHaveTextContent(
       "css 100.0 B",
     );
+  });
+
+  it("should show kilo-line values when percentage is false", () => {
+    const lineLangs = {
+      Python: {
+        color: "#3572A5",
+        name: "Python",
+        size: 952,
+      },
+      JavaScript: {
+        color: "#f1e05a",
+        name: "JavaScript",
+        size: 1200,
+      },
+    };
+
+    document.body.innerHTML = renderTopLanguages(lineLangs, {
+      layout: "compact",
+      percentage: false,
+    });
+
+    expect(queryAllByTestId(document.body, "lang-name")[0]).toHaveTextContent(
+      "JavaScript 1.20 k",
+    );
+    expect(queryAllByTestId(document.body, "lang-name")[1]).toHaveTextContent(
+      "Python 0.95 k",
+    );
+  });
+
+  it("should keep line labels visible when hide_progress is true and percentage is false", () => {
+    document.body.innerHTML = renderTopLanguages(
+      {
+        Python: {
+          color: "#3572A5",
+          name: "Python",
+          size: 952,
+        },
+      },
+      {
+        layout: "compact",
+        hide_progress: true,
+        percentage: false,
+      },
+    );
+
+    expect(queryByTestId(document.body, "lang-progress")).toBeNull();
+    expect(queryAllByTestId(document.body, "lang-name")[0]).toHaveTextContent(
+      "Python 0.95 k",
+    );
+  });
+
+  it("should prioritize percentage=false over stats_format=bytes", () => {
+    document.body.innerHTML = renderTopLanguages(
+      {
+        Python: {
+          color: "#3572A5",
+          name: "Python",
+          size: 952,
+        },
+      },
+      {
+        layout: "compact",
+        stats_format: "bytes",
+        percentage: false,
+      },
+    );
+
+    expect(queryAllByTestId(document.body, "lang-name")[0]).toHaveTextContent(
+      "Python 0.95 k",
+    );
+  });
+
+  it("should keep previous behavior when percentage is omitted or true", () => {
+    document.body.innerHTML = renderTopLanguages(
+      {
+        Python: {
+          color: "#3572A5",
+          name: "Python",
+          size: 952,
+        },
+      },
+      {
+        layout: "compact",
+      },
+    );
+
+    expect(queryAllByTestId(document.body, "lang-name")[0]).toHaveTextContent(
+      "Python 100.00%",
+    );
+
+    document.body.innerHTML = renderTopLanguages(
+      {
+        Python: {
+          color: "#3572A5",
+          name: "Python",
+          size: 952,
+        },
+      },
+      {
+        layout: "compact",
+        percentage: true,
+      },
+    );
+
+    expect(queryAllByTestId(document.body, "lang-name")[0]).toHaveTextContent(
+      "Python 100.00%",
+    );
+  });
+
+  it("should apply top language color overrides across swatches", () => {
+    document.body.innerHTML = renderTopLanguages(overrideColorLangs, {
+      layout: "compact",
+    });
+
+    const compactProgress = queryAllByTestId(document.body, "lang-progress");
+    expect(compactProgress[0]).toHaveAttribute("fill", "#FFA726");
+    expect(compactProgress[1]).toHaveAttribute("fill", "#FFFFFF");
+    expect(compactProgress[2]).toHaveAttribute("fill", "#FF00FF");
+
+    const legendDots = Array.from(document.querySelectorAll("circle")).filter(
+      (circle) => circle.getAttribute("r") === "5",
+    );
+    expect(legendDots[0]).toHaveAttribute("fill", "#FFA726");
+    expect(legendDots[1]).toHaveAttribute("fill", "#FFFFFF");
+    expect(legendDots[2]).toHaveAttribute("fill", "#FF00FF");
   });
 });

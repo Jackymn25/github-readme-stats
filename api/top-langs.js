@@ -42,6 +42,7 @@ export default async (req, res) => {
     disable_animations,
     hide_progress,
     stats_format,
+    percentage,
   } = req.query;
   res.setHeader("Content-Type", "image/svg+xml");
 
@@ -123,6 +124,7 @@ export default async (req, res) => {
       parseArray(exclude_repo),
       size_weight,
       count_weight,
+      parseBoolean(percentage) === false,
     );
     const cacheSeconds = resolveCacheSeconds({
       requested: parseInt(cache_seconds, 10),
@@ -152,6 +154,7 @@ export default async (req, res) => {
         disable_animations: parseBoolean(disable_animations),
         hide_progress: parseBoolean(hide_progress),
         stats_format,
+        percentage: parseBoolean(percentage),
       }),
     );
   } catch (err) {
