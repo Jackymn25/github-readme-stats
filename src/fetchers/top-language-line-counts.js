@@ -102,7 +102,7 @@ const countLines = (text) => {
 /**
  * Count language lines for a repository HEAD ref.
  *
- * @param {{ nameWithOwner: string, defaultBranchOid?: string | null }} repoNode Repository node.
+ * @param {{ nameWithOwner: string, defaultBranchOid?: string | null, defaultBranchTreeOid?: string | null }} repoNode Repository node.
  * @returns {Promise<Record<string, number>>} Language line counts.
  */
 const countRepositoryLanguageLines = async (repoNode) => {
@@ -121,7 +121,7 @@ const countRepositoryLanguageLines = async (repoNode) => {
   const treeRes = await retryer(fetchRepoTree, {
     owner,
     repo,
-    ref: repoNode.defaultBranchOid,
+    ref: repoNode.defaultBranchTreeOid || repoNode.defaultBranchOid,
   });
 
   const tree = treeRes?.data?.tree || [];

@@ -31,6 +31,9 @@ const fetcher = (variables, token) => {
                 target {
                   ... on Commit {
                     oid
+                    tree {
+                      oid
+                    }
                   }
                 }
               }
@@ -130,6 +133,8 @@ const fetchTopLanguages = async (
           await countRepositoryLanguageLines({
             nameWithOwner: repoNode.nameWithOwner,
             defaultBranchOid: repoNode.defaultBranchRef?.target?.oid,
+            defaultBranchTreeOid:
+              repoNode.defaultBranchRef?.target?.tree?.oid || null,
           });
       }),
     );
