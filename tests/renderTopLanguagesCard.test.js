@@ -1009,6 +1009,32 @@ describe("Test renderTopLanguages", () => {
     );
   });
 
+  it("should normalize hidden language names with spacing/casing in line-count mode", () => {
+    const lineLangs = {
+      Python: { color: "#3572A5", name: "Python", size: 1200 },
+      "Jupyter Notebook": {
+        color: "#DA5B0B",
+        name: "Jupyter Notebook",
+        size: 900,
+      },
+      CMake: { color: "#DA3434", name: "CMake", size: 400 },
+      Makefile: { color: "#427819", name: "Makefile", size: 300 },
+    };
+
+    document.body.innerHTML = renderTopLanguages(lineLangs, {
+      layout: "compact",
+      percentage: false,
+      hide: [" jupyter notebook ", "cmake", "MAKEFILE"],
+    });
+
+    const names = queryAllByTestId(document.body, "lang-name").map(
+      (node) => node.textContent,
+    );
+    expect(names.length).toBe(1);
+    expect(names[0]).toContain("Python 1.20 k");
+    expect(document.body.textContent).not.toContain("No languages data.");
+  });
+
   it("should apply top language color overrides across swatches", () => {
     document.body.innerHTML = renderTopLanguages(overrideColorLangs, {
       layout: "compact",

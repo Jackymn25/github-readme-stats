@@ -244,4 +244,112 @@ describe("Test /api/top-langs", () => {
         `stale-while-revalidate=${DURATIONS.ONE_DAY}`,
     );
   });
+
+  it("should parse percentage=false and keep non-hidden languages", async () => {
+    const req = {
+      query: {
+        username: "Jackymn25",
+        layout: "compact",
+        langs_count: "12",
+        percentage: "false",
+        hide: "jupyter notebook,cmake,makefile",
+      },
+    };
+    const res = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    };
+
+    mock.onPost("https://api.github.com/graphql").reply((config) => {
+      const payload = JSON.parse(config.data);
+      if (payload.query.includes("topLangBlobBatch")) {
+        return [
+          200,
+          {
+            data: {
+              repository: {
+                blob0: {
+                  text: "print('hello')\nprint('world')",
+                  isBinary: false,
+                  isTruncated: false,
+                  linguistLanguage: { name: "Python" },
+                },
+                blob1: {
+                  text: '{\n "cells": []\n}',
+                  isBinary: false,
+                  isTruncated: false,
+                  linguistLanguage: { name: "Jupyter Notebook" },
+                },
+                blob2: {
+                  text: "cmake_minimum_required(VERSION 3.10)",
+                  isBinary: false,
+                  isTruncated: false,
+                  linguistLanguage: { name: "CMake" },
+                },
+                blob3: {
+                  text: "all:\n\techo ok",
+                  isBinary: false,
+                  isTruncated: false,
+                  linguistLanguage: { name: "Makefile" },
+                },
+              },
+            },
+          },
+        ];
+      }
+
+      return [
+        200,
+        {
+          data: {
+            user: {
+              repositories: {
+                nodes: [
+                  {
+                    name: "repo-a",
+                    nameWithOwner: "demo/repo-a",
+                    defaultBranchRef: {
+                      target: {
+                        oid: "commit123",
+                        tree: { oid: "tree123" },
+                      },
+                    },
+                    languages: {
+                      edges: [
+                        {
+                          size: 10,
+                          node: { color: "#3572A5", name: "Python" },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      ];
+    });
+
+    mock
+      .onGet(
+        "https://api.github.com/repos/demo/repo-a/git/trees/tree123?recursive=1",
+      )
+      .reply(200, {
+        tree: [
+          { type: "blob", path: "main.py" },
+          { type: "blob", path: "notebook.ipynb" },
+          { type: "blob", path: "CMakeLists.txt" },
+          { type: "blob", path: "Makefile" },
+        ],
+      });
+
+    await topLangs(req, res);
+
+    expect(res.send).toHaveBeenCalledTimes(1);
+    const svg = res.send.mock.calls[0][0];
+    expect(svg).toContain("Python 0.00 k");
+    expect(svg).not.toContain("No languages data.");
+    expect(svg).not.toContain("Jupyter Notebook");
+  });
 });
