@@ -5,7 +5,9 @@ import { logger } from "../common/log.js";
 import { excludeRepositories } from "../common/envs.js";
 import { CustomError, MissingParamError } from "../common/error.js";
 import { wrapTextMultiline } from "../common/fmt.js";
+import { resolveTopLanguageColor } from "../common/language-color.js";
 import { request } from "../common/http.js";
+import { countRepositoryLanguageLines } from "./top-language-line-counts.js";
 
 /**
  * Top languages fetcher object.
@@ -24,6 +26,14 @@ const fetcher = (variables, token) => {
           repositories(ownerAffiliations: OWNER, isFork: false, first: 100) {
             nodes {
               name
+              nameWithOwner
+              defaultBranchRef {
+                target {
+                  ... on Commit {
+                    oid
+                  }
+                }
+              }
               languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
                 edges {
                   size
@@ -57,6 +67,7 @@ const fetcher = (variables, token) => {
  * @param {string[]} exclude_repo List of repositories to exclude.
  * @param {number} size_weight Weightage to be given to size.
  * @param {number} count_weight Weightage to be given to count.
+ * @param {boolean=} use_line_counts Whether to compute and return line counts.
  * @returns {Promise<TopLangData>} Top languages data.
  */
 const fetchTopLanguages = async (
@@ -64,6 +75,7 @@ const fetchTopLanguages = async (
   exclude_repo = [],
   size_weight = 1,
   count_weight = 0,
+  use_line_counts = false,
 ) => {
   if (!username) {
     throw new MissingParamError(["username"]);
@@ -109,37 +121,65 @@ const fetchTopLanguages = async (
     .sort((a, b) => b.size - a.size)
     .filter((name) => !repoToHide[name.name]);
 
+  /** @type {Record<string, Record<string, number>>} */
+  const repositoryLineCounts = {};
+  if (use_line_counts) {
+    await Promise.all(
+      repoNodes.map(async (repoNode) => {
+        repositoryLineCounts[repoNode.nameWithOwner] =
+          await countRepositoryLanguageLines({
+            nameWithOwner: repoNode.nameWithOwner,
+            defaultBranchOid: repoNode.defaultBranchRef?.target?.oid,
+          });
+      }),
+    );
+  }
+
   let repoCount = 0;
 
-  repoNodes = repoNodes
-    .filter((node) => node.languages.edges.length > 0)
-    // flatten the list of language nodes
-    .reduce((acc, curr) => curr.languages.edges.concat(acc), [])
-    .reduce((acc, prev) => {
-      // get the size of the language (bytes)
-      let langSize = prev.size;
+  const languageEntries = use_line_counts
+    ? repoNodes
+        .map((repoNode) => {
+          const linesByLanguage = repositoryLineCounts[repoNode.nameWithOwner];
+          return Object.entries(linesByLanguage || {}).map(([name, size]) => ({
+            size,
+            node: {
+              name,
+              color: resolveTopLanguageColor(name, null),
+            },
+          }));
+        })
+        .flat()
+    : repoNodes
+        .filter((node) => node.languages.edges.length > 0)
+        // flatten the list of language nodes
+        .reduce((acc, curr) => curr.languages.edges.concat(acc), []);
 
-      // if we already have the language in the accumulator
-      // & the current language name is same as previous name
-      // add the size to the language size and increase repoCount.
-      if (acc[prev.node.name] && prev.node.name === acc[prev.node.name].name) {
-        langSize = prev.size + acc[prev.node.name].size;
-        repoCount += 1;
-      } else {
-        // reset repoCount to 1
-        // language must exist in at least one repo to be detected
-        repoCount = 1;
-      }
-      return {
-        ...acc,
-        [prev.node.name]: {
-          name: prev.node.name,
-          color: prev.node.color,
-          size: langSize,
-          count: repoCount,
-        },
-      };
-    }, {});
+  repoNodes = languageEntries.reduce((acc, prev) => {
+    // get the size of the language
+    let langSize = prev.size;
+
+    // if we already have the language in the accumulator
+    // & the current language name is same as previous name
+    // add the size to the language size and increase repoCount.
+    if (acc[prev.node.name] && prev.node.name === acc[prev.node.name].name) {
+      langSize = prev.size + acc[prev.node.name].size;
+      repoCount += 1;
+    } else {
+      // reset repoCount to 1
+      // language must exist in at least one repo to be detected
+      repoCount = 1;
+    }
+    return {
+      ...acc,
+      [prev.node.name]: {
+        name: prev.node.name,
+        color: resolveTopLanguageColor(prev.node.name, prev.node.color),
+        size: langSize,
+        count: repoCount,
+      },
+    };
+  }, {});
 
   Object.keys(repoNodes).forEach((name) => {
     // comparison index calculation

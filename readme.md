@@ -501,6 +501,7 @@ You can customize the appearance and behavior of the top languages card using th
 | `size_weight` | Configures language stats algorithm (see [Language stats algorithm](#language-stats-algorithm)). | integer | `1` |
 | `count_weight` | Configures language stats algorithm (see [Language stats algorithm](#language-stats-algorithm)). | integer | `0` |
 | `stats_format` | Switches between two available formats for language's stats `percentages` and `bytes`. | enum | `percentages` |
+| `percentage` | When set to `false`, shows language line counts as `X.XX k` instead of percentages. | boolean | `true` |
 
 > [!WARNING]
 > Language names and custom title should be URI-escaped, as specified in [Percent Encoding](https://en.wikipedia.org/wiki/Percent-encoding) (i.e: `c++` should become `c%2B%2B`, `jupyter notebook` should become `jupyter%20notebook`, `Most Used Languages` should become `Most%20Used%20Languages`, etc.) You can use [urlencoder.org](https://www.urlencoder.org/) to help you do this automatically.
@@ -594,6 +595,20 @@ You can use the `&stats_format=bytes` option to display the stats in bytes inste
 ```md
 ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=anuraghazra&stats_format=bytes)
 ```
+
+### Show language line counts instead of percentages
+
+You can use the `&percentage=false` option to display language values as line counts in `k` units (`1 k = 1000 lines`).
+
+```md
+![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=anuraghazra&percentage=false)
+```
+
+In this mode:
+
+- legend values are rendered as `Language X.XX k` (always 2 decimal places),
+- compact/normal progress widths are calculated from line-count share,
+- `stats_format=bytes` is ignored when `percentage=false` is set.
 
 
 ### Demo
