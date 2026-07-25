@@ -1,0 +1,51 @@
+{
+  "username": "Jackymn25",
+  "displayName": "Haozhe Huo",
+  "generatedAt": "2026-07-16",
+  "analysis": {
+    "lineCounting": "Physical lines in tracked text files; dependency, build, and generated directories are excluded.",
+    "ignoredLanguages": ["Markdown", "JSON", "XML", "YAML", "HTML", "Jupyter Notebook"],
+    "excludedForks": true
+  },
+  "privateAggregate": {
+    "projectCount": 9,
+    "countedLines": 13072,
+    "languages": {"Python":11835,"Java":923,"Shell":314},
+    "tags": [
+      {"name":"software","lines":12067,"projects":2},
+      {"name":"LLM Systems","lines":11735,"projects":1},
+      {"name":"web scraping","lines":11735,"projects":1},
+      {"name":"research","lines":414,"projects":1},
+      {"name":"game","lines":369,"projects":1},
+      {"name":"algorithms","lines":369,"projects":2}
+    ],
+    "tools": [
+      {"name":"Gradle","projects":2},
+      {"name":"CMake","projects":1},
+      {"name":"Python","projects":1}
+    ]
+  },
+  "domains": [
+    {"name":"software","lines":21787,"languages":{"Java":18413,"C":3374}},
+    {"name":"LLM Systems","lines":11735,"languages":{"Python":11421,"Shell":314}},
+    {"name":"game","lines":8094,"languages":{"Java":4791,"Assembly":3303}},
+    {"name":"machine-learning","lines":7340,"languages":{"Python":7340}},
+    {"name":"research","lines":414,"languages":{"Python":414}},
+    {"name":"data-analysis","lines":1284,"languages":{"Python":1250,"R":34}},
+    {"name":"design","lines":79,"languages":{"R":79}}
+  ],
+  "projects": [
+    {"name":"Jackymn25","fork":false,"include":true,"countedLines":0,"languages":{},"tags":["profile"],"tools":["GitHub README"]},
+    {"name":"Bioscribe","fork":true,"include":false,"countedLines":5281,"languages":{"Python":5281,"HTML":986},"tags":["research", "LLM Systems"],"tools":["Python"]},
+    {"name":"LexiGOv1.0","fork":false,"include":true,"countedLines":18413,"languages":{"Java":18413},"tags":["software"],"tools":["Java"]},
+    {"name":"painting-classification","fork":false,"include":true,"countedLines":7340,"languages":{"Python":7340,"Jupyter Notebook":3978},"tags":["machine-learning"],"tools":["Python","Jupyter"]},
+    {"name":"Minecraft-minigame-plugin-TaskRush","fork":false,"include":true,"countedLines":3868,"languages":{"Java":3868},"tags":["game plugin", "game"],"tools":["Java"]},
+    {"name":"Assembly-Game-Cpulator","fork":false,"include":true,"countedLines":3303,"languages":{"Assembly":3303},"tags":["game"],"tools":["RISC-V Assembly","CPulator"]},
+    {"name":"Work-performance-analysis","fork":false,"include":true,"countedLines":34,"languages":{"R":56},"tags":["data-analysis","machine learning"],"tools":["R","RStudio"]},
+    {"name":"linux-mysh-shell","fork":false,"include":true,"countedLines":3374,"languages":{"C":3374},"tags":["software"],"tools":["C","Make","Linux"]},
+    {"name":"utm-department-analysis","fork":false,"include":true,"countedLines":360,"languages":{"Python":360},"tags":["web scraping","data analysis"],"tools":["Python","pandas"]},
+    {"name":"data_analysis_base","fork":false,"include":true,"countedLines":890,"languages":{"Python":890,"Jupyter Notebook":4855},"tags":["data-analysis"],"tools":["Python","Jupyter","RStudio"]},
+    {"name":"hexSticker-Project","fork":false,"include":true,"countedLines":79,"languages":{"R":79},"tags":["design"],"tools":["R","ggplot2","hexSticker"]},
+    {"name":"PrefectLLMOrchestration","fork":true,"include":false,"countedLines":916,"languages":{"Python":916},"tags":["LLM Systems"],"tools":["Python","Prefect","PostgreSQL"]}
+  ]
+}

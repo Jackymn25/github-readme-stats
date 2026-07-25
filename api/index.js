@@ -15,6 +15,7 @@ import {
 import { parseArray, parseBoolean } from "../src/common/ops.js";
 import { renderError } from "../src/common/render.js";
 import { fetchStats } from "../src/fetchers/stats.js";
+import { fetchProjectPortfolio } from "../src/fetchers/project-portfolio.js";
 import { isLocaleAvailable } from "../src/translations.js";
 
 // @ts-ignore
@@ -48,6 +49,7 @@ export default async (req, res) => {
     border_color,
     rank_icon,
     show,
+    metric,
   } = req.query;
   res.setHeader("Content-Type", "image/svg+xml");
 
@@ -101,6 +103,8 @@ export default async (req, res) => {
       min: CACHE_TTL.STATS_CARD.MIN,
       max: CACHE_TTL.STATS_CARD.MAX,
     });
+    const totalCodeLines =
+      metric === "code_lines" ? fetchProjectPortfolio(username).totalCodeLines : 0;
 
     setCacheHeaders(res, cacheSeconds);
 
@@ -131,6 +135,8 @@ export default async (req, res) => {
         disable_animations: parseBoolean(disable_animations),
         rank_icon,
         show: showStats,
+        metric,
+        total_code_lines: totalCodeLines,
       }),
     );
   } catch (err) {

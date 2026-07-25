@@ -93,6 +93,20 @@ describe("Test renderStatsCard", () => {
     expect(queryByTestId(document.body, "prs_merged_percentage")).toBeNull();
   });
 
+  it("should render total code lines when metric is code_lines", () => {
+    document.body.innerHTML = renderStatsCard(stats, {
+      metric: "code_lines",
+      total_code_lines: 50733,
+    });
+
+    expect(getByTestId(document.body, "contribs").textContent).toBe("50.7k");
+    expect(
+      document.querySelector(
+        'g[transform="translate(0, 100)"]>.stagger>.stat.bold',
+      ).textContent,
+    ).toMatchInlineSnapshot(`"Total Code Lines:"`);
+  });
+
   it("should show additional stats", () => {
     document.body.innerHTML = renderStatsCard(stats, {
       show: [
@@ -399,7 +413,7 @@ describe("Test renderStatsCard", () => {
       document.querySelector(
         'g[transform="translate(0, 100)"]>.stagger>.stat.bold',
       ).textContent,
-    ).toMatchInlineSnapshot(`"贡献的项目数（去年）:"`);
+    ).toMatchInlineSnapshot(`"Active days (last 90 days):"`);
   });
 
   it("should render without rounding", () => {

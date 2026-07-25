@@ -191,6 +191,24 @@ describe("Test /api/", () => {
     );
   });
 
+  it("should render total code lines metric for Jackymn25", async () => {
+    const { req, res } = faker(
+      { username: "Jackymn25", hide: "issues,prs,contribs", metric: "code_lines" },
+      data_stats,
+    );
+
+    await api(req, res);
+
+    expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "image/svg+xml");
+    expect(res.send).toHaveBeenCalledWith(
+      renderStatsCard(stats, {
+        hide: ["issues", "prs", "contribs"],
+        metric: "code_lines",
+        total_code_lines: 50733,
+      }),
+    );
+  });
+
   it("should have proper cache", async () => {
     const { req, res } = faker({}, data_stats);
 

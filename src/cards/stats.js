@@ -267,6 +267,7 @@ const renderStatsCard = (stats, options = {}) => {
     totalDiscussionsStarted,
     totalDiscussionsAnswered,
     contributedTo,
+    activeDays90,
     rank,
   } = stats;
   const {
@@ -295,6 +296,8 @@ const renderStatsCard = (stats, options = {}) => {
     disable_animations = false,
     rank_icon = "default",
     show = [],
+    metric = "",
+    total_code_lines: totalCodeLines,
   } = options;
 
   const lheight = parseInt(String(line_height), 10);
@@ -404,8 +407,11 @@ const renderStatsCard = (stats, options = {}) => {
 
   STATS.contribs = {
     icon: icons.contribs,
-    label: i18n.t("statcard.contribs"),
-    value: contributedTo,
+    label: metric === "code_lines" ? "Total Code Lines" : "Active days (last 90 days)",
+    value:
+      metric === "code_lines"
+        ? totalCodeLines ?? activeDays90 ?? contributedTo
+        : activeDays90 ?? contributedTo,
     id: "contribs",
   };
 

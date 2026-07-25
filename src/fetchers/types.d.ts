@@ -36,6 +36,7 @@ export type StatsData = {
   totalDiscussionsStarted: number;
   totalDiscussionsAnswered: number;
   contributedTo: number;
+  activeDays90: number;
   rank: { level: string; percentile: number };
 };
 
